@@ -21,6 +21,12 @@ static int isCollision = 0; // Is there collision between the spacecraft and an 
 static unsigned int spacecraft; // Display lists base index.
 static int frameCount = 0; // Number of frames
 
+static unsigned int sphere;
+static float latAngle = 0.0; // Latitudinal angle.
+static float longAngle = 0.0; // Longitudinal angle.
+static float Xangle = 0.0, Yangle = 0.0, Zangle = 0.0; // Angles to rotate scene.
+static int isAnimate = 0; // Animated?
+static int animationPeriod = 100; // Time interval between frames.
 // Routine to draw a bitmap character string.
 void writeBitmapString(void *font, char *string)
 {
@@ -29,62 +35,6 @@ void writeBitmapString(void *font, char *string)
 	for (c = string; *c != '\0'; c++) glutBitmapCharacter(font, *c);
 }
 
-// Asteroid class.
-class Asteroid
-{
-public:
-	Asteroid();
-	Asteroid(float x, float y, float z, float r, unsigned char colorR,
-		unsigned char colorG, unsigned char colorB);
-	float getCenterX() { return centerX; }
-	float getCenterY() { return centerY; }
-	float getCenterZ() { return centerZ; }
-	float getRadius() { return radius; }
-	void draw();
-
-private:
-	float centerX, centerY, centerZ, radius;
-	unsigned char color[3];
-};
-
-// Asteroid default constructor.
-Asteroid::Asteroid()
-{
-	centerX = 0.0;
-	centerY = 0.0;
-	centerZ = 0.0;
-	radius = 0.0; // Indicates no asteroid exists in the position.
-	color[0] = 0;
-	color[1] = 0;
-	color[2] = 0;
-}
-
-// Asteroid constructor.
-Asteroid::Asteroid(float x, float y, float z, float r, unsigned char colorR,unsigned char colorG, unsigned char colorB)
-{
-	centerX = x;
-	centerY = y;
-	centerZ = z;
-	radius = r;
-	color[0] = colorR;
-	color[1] = colorG;
-	color[2] = colorB;
-}
-
-// Function to draw asteroid.
-void Asteroid::draw()
-{
-	if (radius > 0.0) // If asteroid exists.
-	{
-		glPushMatrix();
-		glTranslatef(centerX, centerY, centerZ);
-		glColor3ubv(color);
-		glutWireSphere(radius, (int)radius * 6, (int)radius * 6);
-		glPopMatrix();
-	}
-}
-
-Asteroid arrayAsteroids[ROWS][COLUMNS]; // Global array of asteroids.
 
 // Routine to count the number of frames drawn every second.
 void frameCounter(int value)
@@ -110,21 +60,10 @@ void setup(void)
 	glEndList();
 
 	// Initialize global arrayAsteroids.
-	for (j = 0; j<COLUMNS; j++)
-		for (i = 0; i<ROWS; i++)
-			if (rand() % 100 < FILL_PROBABILITY)
-				// If rand()%100 >= FILL_PROBABILITY the default constructor asteroid remains in the slot
-				// which indicates that there is no asteroid there because the default's radius is 0.
-			{
-				// Position the asteroids depending on if there is an even or odd number of columns
-				// so that the spacecraft faces the middle of the asteroid field.
-				if (COLUMNS % 2) // Odd number of columns.
-					arrayAsteroids[i][j] = Asteroid(30.0*(-COLUMNS / 2 + j), 0.0, -40.0 - 30.0*i, 3.0,
-						rand() % 256, rand() % 256, rand() % 256);
-				else // Even number of columns.
-					arrayAsteroids[i][j] = Asteroid(15 + 30.0*(-COLUMNS / 2 + j), 0.0, -40.0 - 30.0*i, 3.0,
-						rand() % 256, rand() % 256, rand() % 256);
-			}
+    sphere = glGenLists(2);
+    glNewList(sphere,GL_COMPILE);
+    glutSolidSphere(6, 50, 62);
+    glEndList();
 
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -132,31 +71,86 @@ void setup(void)
 	glutTimerFunc(0, frameCounter, 0); // Initial call of frameCounter().
 }
 
-// Function to check if two spheres centered at (x1,y1,z1) and (x2,y2,z2) with
-// radius r1 and r2 intersect.
-int checkSpheresIntersection(float x1, float y1, float z1, float r1,
-	float x2, float y2, float z2, float r2)
-{
-	return ((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2) + (z1 - z2)*(z1 - z2) <= (r1 + r2)*(r1 + r2));
-}
-
-// Function to check if the spacecraft collides with an asteroid when the center of the base
-// of the craft is at (x, 0, z) and it is aligned at an angle a to to the -z direction.
-// Collision detection is approximate as instead of the spacecraft we use a bounding sphere.
-int asteroidCraftCollision(float x, float z, float a)
-{
-	int i, j;
-
-	// Check for collision with each asteroid.
-	for (j = 0; j<COLUMNS; j++)
-		for (i = 0; i<ROWS; i++)
-			if (arrayAsteroids[i][j].getRadius() > 0) // If asteroid exists.
-				if (checkSpheresIntersection(x - 5 * sin((M_PI / 180.0) * a), 0.0,
-					z - 5 * cos((M_PI / 180.0) * a), 7.072,
-					arrayAsteroids[i][j].getCenterX(), arrayAsteroids[i][j].getCenterY(),
-					arrayAsteroids[i][j].getCenterZ(), arrayAsteroids[i][j].getRadius()))
-					return 1;
-	return 0;
+void drawingSystem(void){
+    // sun
+    glColor3f(1.0, 1.0, 0.0);
+    glPushMatrix();
+    glTranslatef(0.0, 5.0, -140.0);
+    glScalef(1.8,1.8,1.8);
+    glCallList(sphere); // Execute display list.
+    glPopMatrix();
+    // mercury
+    glColor3f(0.8f, 0.8f, 0.8f);
+    glPushMatrix();
+	glRotatef(latAngle, 0.0, 0.0, 1.0);
+    glTranslatef(19.0, 5.0, -140.0);
+    glScalef(0.4,0.4,0.4);
+    glCallList(sphere); // Execute display list.
+    glPopMatrix();
+    // venus
+    glColor3f(1.0f, 0.5f, 0.0f);
+    glPushMatrix();
+	glRotatef(latAngle*0.9, 0.0, 0.0, 1.0);
+    glTranslatef(30.0, 5.0, -140.0);
+    glScalef(1.0,1.0,1.0);
+    glCallList(sphere); // Execute display list.
+    glPopMatrix();
+    // moon
+    glColor3f(1.0, 1.0, 1.0);
+    glPushMatrix();
+	glRotatef(1.1 * latAngle, 0.0, 0.0, 1.0);
+    glTranslatef(43.0, 6.0, -140.0);
+    glScalef(0.25,0.25,0.25);
+    glCallList(sphere); // Execute display list.
+    glPopMatrix();
+    // earth
+    glColor3f(0.0f, 0.0f, 1.0f);
+    glPushMatrix();
+    glRotatef(latAngle*0.8, 0.0, 0.0, 1.0);
+    glTranslatef(43.0, 5.0, -140.0);
+    glScalef(1.0,1.0,1.0);
+    glCallList(sphere); // Execute display list.
+    glPopMatrix();
+    // mars
+    glColor3f(1.0f, 0.0f, 0.0f);
+    glPushMatrix();
+    glRotatef(latAngle*0.7, 0.0, 0.0, 1.0);
+    glTranslatef(53.0, 5.0, -140.0);
+    glScalef(0.5,0.5,0.5);
+    glCallList(sphere); // Execute display list.
+    glPopMatrix();
+    // Jupiter
+    glColor3f( 0.8f, 0.6f, 0.3f);
+    glPushMatrix();
+    glRotatef(latAngle*0.6, 0.0, 0.0, 1.0);
+    glTranslatef(66.0, 5.0, -140.0);
+    glScalef(1.4,1.4,1.4);
+    glCallList(sphere); // Execute display list.
+    glPopMatrix();
+    // Saturn
+    glColor3f(0.9f, 0.7f, 0.2f);
+    glPushMatrix();
+    glRotatef(latAngle*0.5, 0.0, 0.0, 1.0);
+    glTranslatef(85.0, 5.0, -140.0);
+    glScalef(1.2,1.2,1.2);
+    glCallList(sphere); // Execute display list.
+    glPopMatrix();
+    // Uranus
+    glColor3f( 0.6f, 0.8f, 0.9f);
+    glPushMatrix();
+    glRotatef(latAngle*0.4, 0.0, 0.0, 1.0);
+    glTranslatef(102.5, 5.0, -140.0);
+    glScalef(1.1,1.1,1.1);
+    glCallList(sphere); // Execute display list.
+    glPopMatrix();
+    // Neptune
+    glColor3f( 0.2f, 0.4f, 1.0f);
+    glPushMatrix();
+    glRotatef(latAngle*0.3, 0.0, 0.0, 1.0);
+    glTranslatef(120.0, 5.0, -140.0);
+    glScalef(1.08,1.08,1.08);
+    glCallList(sphere); // Execute display list.
+    glPopMatrix();
 }
 
 // Drawing routine.
@@ -175,16 +169,14 @@ void drawScene(void)
    glPushMatrix();
    glColor3f(1.0, 0.0, 0.0);
    glRasterPos3f(-28.0, 25.0, -30.0);
-   if (isCollision) writeBitmapString((void*)font, "Cannot - will crash!");
+   //if (isCollision) writeBitmapString((void*)font, "Cannot - will crash!");
    glPopMatrix();
 
    // Fixed camera.
    gluLookAt(0.0, 10.0, 20.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
 
-   // Draw all the asteroids in arrayAsteroids.
-   for (j = 0; j<COLUMNS; j++)
-      for (i = 0; i<ROWS; i++)
-         arrayAsteroids[i][j].draw();
+   // Draw solar systems using sphere list.
+    drawingSystem();
 
 	// Draw spacecraft.
 	glPushMatrix();
@@ -202,7 +194,7 @@ void drawScene(void)
 	glPushMatrix();
 	glColor3f(1.0, 0.0, 0.0);
 	glRasterPos3f(-28.0, 25.0, -30.0);
-	if (isCollision) writeBitmapString((void*)font, "Cannot - will crash!");
+	//if (isCollision) writeBitmapString((void*)font, "Cannot - will crash!");
 	glPopMatrix();
 
 	// Locate the camera at the tip of the cone and pointing in the direction of the cone.
@@ -217,9 +209,7 @@ void drawScene(void)
 		0.0);
 
 	// Draw all the asteroids in arrayAsteroids.
-	for (j = 0; j<COLUMNS; j++)
-		for (i = 0; i<ROWS; i++)
-			arrayAsteroids[i][j].draw();
+    drawingSystem();
 	// End right viewport.
 
 	glutSwapBuffers();
@@ -238,12 +228,33 @@ void resize(int w, int h)
 	width = w;
 	height = h;
 }
+// Timer function.
+void animate(int value)
+{
+	if (isAnimate)
+	{
+		latAngle += 5.0;
+		//if (latAngle > 360.0) latAngle -= 360.0;
+		longAngle += 1.0;
+		//if (longAngle > 360.0) longAngle -= 360.0;
 
+		glutPostRedisplay();
+		glutTimerFunc(animationPeriod, animate, 1);
+	}
+}
 // Keyboard input processing routine.
 void keyInput(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
+    case ' ':
+		if (isAnimate) isAnimate = 0;
+		else
+		{
+			isAnimate = 1;
+			animate(1);
+		}
+		break;
 	case 27:
 		exit(0);
 		break;
@@ -274,7 +285,7 @@ void specialKeyInput(int key, int x, int y)
 	// Angle correction.
 	if (tempAngle > 360.0) tempAngle -= 360.0;
 	if (tempAngle < 0.0) tempAngle += 360.0;
-
+/*
 	// Move spacecraft to next position only if there will not be collision with an asteroid.
 	if (!asteroidCraftCollision(tempxVal, tempzVal, tempAngle))
 	{
@@ -284,7 +295,7 @@ void specialKeyInput(int key, int x, int y)
 		angle = tempAngle;
 	}
 	else isCollision = 1;
-
+*/
 	glutPostRedisplay();
 }
 
@@ -306,7 +317,7 @@ int main(int argc, char **argv)
 	glutInitContextProfile(GLUT_COMPATIBILITY_PROFILE);
 
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-	glutInitWindowSize(800, 400);
+	glutInitWindowSize(1500, 800);
 	glutInitWindowPosition(100, 100);
 	glutCreateWindow("spaceTravel.cpp");
 	glutDisplayFunc(drawScene);
