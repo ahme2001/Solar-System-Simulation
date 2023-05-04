@@ -1,0 +1,9 @@
+# depslib dependency file v1.0
+1683141136 source:d:\engneering\level 3\semester 2\graphics\sections\project\solarsystem\main.cpp
+	<cstdlib>
+	<cmath>
+	<iostream>
+	<GL/glew.h>
+	<GL/freeglut.h>
+	<cstdint>
+
