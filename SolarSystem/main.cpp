@@ -3,9 +3,10 @@
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
-
+#include <bits/stdc++.h>
 #include <GL/glew.h>
 #include <GL/freeglut.h>
+#include <glm/vec3.hpp>
 #include <cstdint>  // for uintptr_t
 #define ROWS 8  // Number of rows of asteroids.
 #define COLUMNS 1 // Number of columns of asteroids.
@@ -21,6 +22,20 @@ static int isCollision = 0; // Is there collision between the spacecraft and an 
 static unsigned int spacecraft; // Display lists base index.
 static int frameCount = 0; // Number of frames
 
+std::vector<glm::vec3> points = {
+glm::vec3(0.0, 5.0, -140.0),  // sun
+glm::vec3(19.0, 5.0, -140.0), // mercury
+glm::vec3(30.0, 5.0, -140.0),  // venus
+glm::vec3(43.0, 5.0, -140.0), // earth
+glm::vec3(40.0, 5.0, -190.0), // moon
+glm::vec3(53.0, 5.0, -140.0),  // mars
+glm::vec3(66.0, 5.0, -140.0), // jupiter
+glm::vec3(85.0, 5.0, -140.0),  // saturn
+glm::vec3(102.5, 5.0, -140.0), // uranus
+glm::vec3(120.0, 5.0, -140.0)  // neptune
+};
+std::vector<float> sizePlanet = {1.8,0.4,1.0,1.0,0.25,0.5,1.4,1.2,1.1,1.08};
+static int radius = 6;
 static unsigned int sphere;
 static float latAngle = 0.0; // Latitudinal angle.
 static float longAngle = 0.0; // Longitudinal angle.
@@ -45,6 +60,29 @@ void frameCounter(int value)
    glutTimerFunc(1000, frameCounter, 1);
 }
 
+int checkSpheresIntersection(float x1, float y1, float z1, float r1,
+	float x2, float y2, float z2, float r2)
+{
+	return ((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2) + (z1 - z2)*(z1 - z2) <= (r1 + r2)*(r1 + r2));
+}
+
+// Function to check if the spacecraft collides with an asteroid when the center of the base
+// of the craft is at (x, 0, z) and it is aligned at an angle a to to the -z direction.
+// Collision detection is approximate as instead of the spacecraft we use a bounding sphere.
+int asteroidCraftCollision(float x, float z, float a)
+{
+	int i, j;
+
+	// Check for collision with each asteroid.
+    for (i = 0; i<points.size(); i++)
+            if (checkSpheresIntersection(x - 5 * sin((M_PI / 180.0) * a), 0.0,
+                z - 5 * cos((M_PI / 180.0) * a), 7.072,
+                points[i].x, points[i].y,
+                points[i].z, sizePlanet[i]*radius))
+                return 1;
+	return 0;
+}
+
 // Initialization routine.
 void setup(void)
 {
@@ -62,7 +100,7 @@ void setup(void)
 	// Initialize global arrayAsteroids.
     sphere = glGenLists(2);
     glNewList(sphere,GL_COMPILE);
-    glutSolidSphere(6, 50, 62);
+    glutWireSphere(radius, 50, 30);
     glEndList();
 
 	glEnable(GL_DEPTH_TEST);
@@ -75,80 +113,82 @@ void drawingSystem(void){
     // sun
     glColor3f(1.0, 1.0, 0.0);
     glPushMatrix();
-    glTranslatef(0.0, 5.0, -140.0);
-    glScalef(1.8,1.8,1.8);
+    glTranslatef(points[0].x,points[0].y,points[0].z);
+    glScalef(sizePlanet[0],sizePlanet[0],sizePlanet[0]);
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // mercury
     glColor3f(0.8f, 0.8f, 0.8f);
     glPushMatrix();
 	glRotatef(latAngle, 0.0, 0.0, 1.0);
-    glTranslatef(19.0, 5.0, -140.0);
-    glScalef(0.4,0.4,0.4);
+    glTranslatef(points[1].x,points[1].y,points[1].z);
+    glScalef(sizePlanet[1],sizePlanet[1],sizePlanet[1]);
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // venus
     glColor3f(1.0f, 0.5f, 0.0f);
     glPushMatrix();
 	glRotatef(latAngle*0.9, 0.0, 0.0, 1.0);
-    glTranslatef(30.0, 5.0, -140.0);
-    glScalef(1.0,1.0,1.0);
-    glCallList(sphere); // Execute display list.
-    glPopMatrix();
-    // moon
-    glColor3f(1.0, 1.0, 1.0);
-    glPushMatrix();
-	glRotatef(1.1 * latAngle, 0.0, 0.0, 1.0);
-    glTranslatef(43.0, 6.0, -140.0);
-    glScalef(0.25,0.25,0.25);
+    glTranslatef(points[2].x,points[2].y,points[2].z);
+    glScalef(sizePlanet[2],sizePlanet[2],sizePlanet[2]);
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // earth
     glColor3f(0.0f, 0.0f, 1.0f);
     glPushMatrix();
     glRotatef(latAngle*0.8, 0.0, 0.0, 1.0);
-    glTranslatef(43.0, 5.0, -140.0);
-    glScalef(1.0,1.0,1.0);
+    glTranslatef(points[3].x,points[3].y,points[3].z);
+    glScalef(sizePlanet[3],sizePlanet[3],sizePlanet[3]);
+    glCallList(sphere); // Execute display list.
+    glPopMatrix();
+    // moon
+    glColor3f(1.0, 1.0, 1.0);
+    glPushMatrix();
+	//glRotatef(0.1 *longAngle, 0.0, 1.0, 0.0);
+	glRotatef(4*longAngle, 0.0, 0.0, 1.0);
+	glRotatef(40 *longAngle, 1.0, 0.0, 1.0);
+	glTranslatef(points[4].x,points[4].y,points[4].z);
+    glScalef(sizePlanet[4],sizePlanet[4],sizePlanet[4]);
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // mars
     glColor3f(1.0f, 0.0f, 0.0f);
     glPushMatrix();
     glRotatef(latAngle*0.7, 0.0, 0.0, 1.0);
-    glTranslatef(53.0, 5.0, -140.0);
-    glScalef(0.5,0.5,0.5);
+    glTranslatef(points[5].x,points[5].y,points[5].z);
+    glScalef(sizePlanet[5],sizePlanet[5],sizePlanet[5]);
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // Jupiter
     glColor3f( 0.8f, 0.6f, 0.3f);
     glPushMatrix();
     glRotatef(latAngle*0.6, 0.0, 0.0, 1.0);
-    glTranslatef(66.0, 5.0, -140.0);
-    glScalef(1.4,1.4,1.4);
+    glTranslatef(points[6].x,points[6].y,points[6].z);
+    glScalef(sizePlanet[6],sizePlanet[6],sizePlanet[6]);
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // Saturn
     glColor3f(0.9f, 0.7f, 0.2f);
     glPushMatrix();
     glRotatef(latAngle*0.5, 0.0, 0.0, 1.0);
-    glTranslatef(85.0, 5.0, -140.0);
-    glScalef(1.2,1.2,1.2);
+    glTranslatef(points[7].x,points[7].y,points[7].z);
+    glScalef(sizePlanet[7],sizePlanet[7],sizePlanet[7]);
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // Uranus
     glColor3f( 0.6f, 0.8f, 0.9f);
     glPushMatrix();
     glRotatef(latAngle*0.4, 0.0, 0.0, 1.0);
-    glTranslatef(102.5, 5.0, -140.0);
-    glScalef(1.1,1.1,1.1);
+    glTranslatef(points[8].x,points[8].y,points[8].z);
+    glScalef(sizePlanet[8],sizePlanet[8],sizePlanet[8]);
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // Neptune
     glColor3f( 0.2f, 0.4f, 1.0f);
     glPushMatrix();
     glRotatef(latAngle*0.3, 0.0, 0.0, 1.0);
-    glTranslatef(120.0, 5.0, -140.0);
-    glScalef(1.08,1.08,1.08);
+    glTranslatef(points[9].x,points[9].y,points[9].z);
+    glScalef(sizePlanet[9],sizePlanet[9],sizePlanet[9]);
     glCallList(sphere); // Execute display list.
     glPopMatrix();
 }
@@ -169,7 +209,7 @@ void drawScene(void)
    glPushMatrix();
    glColor3f(1.0, 0.0, 0.0);
    glRasterPos3f(-28.0, 25.0, -30.0);
-   //if (isCollision) writeBitmapString((void*)font, "Cannot - will crash!");
+   if (isCollision) writeBitmapString((void*)font, "Cannot - will crash!");
    glPopMatrix();
 
    // Fixed camera.
@@ -194,7 +234,7 @@ void drawScene(void)
 	glPushMatrix();
 	glColor3f(1.0, 0.0, 0.0);
 	glRasterPos3f(-28.0, 25.0, -30.0);
-	//if (isCollision) writeBitmapString((void*)font, "Cannot - will crash!");
+	if (isCollision) writeBitmapString((void*)font, "Cannot - will crash!");
 	glPopMatrix();
 
 	// Locate the camera at the tip of the cone and pointing in the direction of the cone.
@@ -285,7 +325,7 @@ void specialKeyInput(int key, int x, int y)
 	// Angle correction.
 	if (tempAngle > 360.0) tempAngle -= 360.0;
 	if (tempAngle < 0.0) tempAngle += 360.0;
-/*
+
 	// Move spacecraft to next position only if there will not be collision with an asteroid.
 	if (!asteroidCraftCollision(tempxVal, tempzVal, tempAngle))
 	{
@@ -295,7 +335,7 @@ void specialKeyInput(int key, int x, int y)
 		angle = tempAngle;
 	}
 	else isCollision = 1;
-*/
+
 	glutPostRedisplay();
 }
 

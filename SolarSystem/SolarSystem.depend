@@ -7,3 +7,13 @@
 	<GL/freeglut.h>
 	<cstdint>
 
+1683206779 source:d:\engneering\level 3\semester 2\graphics\sections\project\solar-system-simulation\solarsystem\main.cpp
+	<cstdlib>
+	<cmath>
+	<iostream>
+	<bits/stdc++.h>
+	<GL/glew.h>
+	<GL/freeglut.h>
+	<glm/vec3.hpp>
+	<cstdint>
+
