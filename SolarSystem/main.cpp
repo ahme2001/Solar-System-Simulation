@@ -42,18 +42,39 @@ void setup(void)
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 
+	 // Enable lighting and specify light properties.
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    GLfloat light_pos[] = {points[0].x, points[0].y, points[0].z, 1.0};
+    glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+
+
+    GLfloat planet_specular[] = {1.0, 1.0, 1.0, 1.0};
+    GLfloat planet_shininess[] = {50.0};
+    // Specify material properties.
+    glMaterialfv(GL_FRONT, GL_SPECULAR, planet_specular);
+    glMaterialfv(GL_FRONT, GL_SHININESS, planet_shininess);
+
 }
 
 void drawingSystem(void){
     // sun
     glColor3f(1.0, 1.0, 0.0);
+    GLfloat sun_ambient[] = {0.0, 0.0, 1.0, 1.0};
+    GLfloat sun_diffuse[] = {1.0, 1.0, 0.0, 1.0}; // Change this line
+    glMaterialfv(GL_FRONT, GL_AMBIENT, sun_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, sun_diffuse);
     glPushMatrix();
     glTranslatef(points[0].x,points[0].y,points[0].z);
     glScalef(sizePlanet[0],sizePlanet[0],sizePlanet[0]);
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // mercury
-    glColor3f(0.8f, 0.8f, 0.8f);
+    //glColor3f(0.8f, 0.8f, 0.8f);
+    GLfloat mercury_ambient[] = {0.8, 0.8, 0.8, 1.0};
+    GLfloat mercury_diffuse[] = {0.2, 0.2, 0.2, 1.0};
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mercury_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mercury_diffuse);
     glPushMatrix();
 	glRotatef(latAngle, 0.0, 1.0, 0.0);
     glTranslatef(points[1].x,points[1].y,points[1].z);
@@ -61,7 +82,11 @@ void drawingSystem(void){
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // venus
-    glColor3f(1.0f, 0.5f, 0.0f);
+    //glColor3f(1.0f, 0.5f, 0.0f);
+    GLfloat venus_ambient[] = {0.0, 0.5, 1.0, 1.0};
+    GLfloat venus_diffuse[] = {1.0f, 0.5f, 0.0f, 1.0};
+    glMaterialfv(GL_FRONT, GL_AMBIENT, venus_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, venus_diffuse);
     glPushMatrix();
 	glRotatef(latAngle*0.9, 0.0, 1.0, 0.0);
     glTranslatef(points[2].x,points[2].y,points[2].z);
@@ -69,7 +94,11 @@ void drawingSystem(void){
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // earth
-    glColor3f(0.0f, 0.0f, 1.0f);
+    //glColor3f(0.0f, 0.0f, 1.0f);
+    GLfloat earth_ambient[] = {1.0, 1.0 , 0.0, 1.0};
+    GLfloat earth_diffuse[] = {0.0f, 0.0f, 1.0f, 1.0};
+    glMaterialfv(GL_FRONT, GL_AMBIENT, earth_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, earth_diffuse);
     glPushMatrix();
     glRotatef(latAngle*0.8, 0.0, 1.0, 0.0);
     glTranslatef(points[3].x,points[3].y,points[3].z);
@@ -86,7 +115,11 @@ void drawingSystem(void){
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // mars
-    glColor3f(1.0f, 0.0f, 0.0f);
+    //glColor3f(1.0f, 0.0f, 0.0f);
+    GLfloat mars_ambient[] = {0.0, 1.0, 1.0, 0.5};
+    GLfloat mars_diffuse[] = {1.0f, 0.0f, 0.0f, 0.5};
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mars_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, mars_diffuse);
     glPushMatrix();
     glRotatef(latAngle*0.7, 0.0, 1.0, 0.0);
     glTranslatef(points[5].x,points[5].y,points[5].z);
@@ -94,7 +127,11 @@ void drawingSystem(void){
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // Jupiter
-    glColor3f( 0.8f, 0.6f, 0.3f);
+    //glColor3f(0.8f, 0.6f, 0.3f);
+    GLfloat Jupiter_ambient[] = {0.2, 0.4, 0.7, 1.0};
+    GLfloat Jupiter_diffuse[] = {0.8f, 0.6f, 0.3f, 1.0};
+    glMaterialfv(GL_FRONT, GL_AMBIENT, Jupiter_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, Jupiter_diffuse);
     glPushMatrix();
     glRotatef(latAngle*0.6, 0.0, 1.0, 0.0);
     glTranslatef(points[6].x,points[6].y,points[6].z);
@@ -102,7 +139,11 @@ void drawingSystem(void){
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // Saturn
-    glColor3f(0.9f, 0.7f, 0.2f);
+    //glColor3f(0.9f, 0.7f, 0.2f);
+    GLfloat Saturn_ambient[] = {0.1, 0.3, 0.8, 1.0};
+    GLfloat Saturn_diffuse[] = {0.9f, 0.7f, 0.2f, 1.0};
+    glMaterialfv(GL_FRONT, GL_AMBIENT, Saturn_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, Saturn_diffuse);
     glPushMatrix();
     glRotatef(latAngle*0.5, 0.0, 1.0, 0.0);
     glTranslatef(points[7].x,points[7].y,points[7].z);
@@ -110,7 +151,11 @@ void drawingSystem(void){
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // Uranus
-    glColor3f( 0.6f, 0.8f, 0.9f);
+    //glColor3f( 0.6f, 0.8f, 0.9f);
+    GLfloat Uranus_ambient[] = {0.4, 0.2, 0.1, 1.0};
+    GLfloat Uranus_diffuse[] = {0.6f, 0.8f, 0.9f, 1.0};
+    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, Uranus_ambient);
+    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, Uranus_diffuse);
     glPushMatrix();
     glRotatef(latAngle*0.4, 0.0, 1.0, 0.0);
     glTranslatef(points[8].x,points[8].y,points[8].z);
@@ -118,7 +163,11 @@ void drawingSystem(void){
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     // Neptune
-    glColor3f( 0.2f, 0.4f, 1.0f);
+    //glColor3f( 0.2f, 0.4f, 1.0f);
+    GLfloat Neptune_ambient[] = {0.8, 0.6, 0.0, 1.0};
+    GLfloat Neptune_diffuse[] = {0.2f, 0.4f, 1.0f, 1.0};
+    glMaterialfv(GL_FRONT, GL_AMBIENT, Neptune_ambient);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, Neptune_diffuse);
     glPushMatrix();
     glRotatef(latAngle*0.3, 0.0, 1.0, 0.0);
     glTranslatef(points[9].x,points[9].y,points[9].z);
@@ -131,26 +180,21 @@ void drawingSystem(void){
 void drawScene(void)
 {
 
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// Begin right viewport.
 	glViewport(0, 0, width , height);
 	glLoadIdentity();
-
     // Fixed camera.
     gluLookAt(0.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-
-	// Draw all the asteroids in arrayAsteroids.
+	// Draw solar system.
     drawingSystem();
 	// End right viewport.
 
 	// Beg	in left viewport.
     glViewport(3.0 * width / 4.0, 0, width / 3.0, height/3.0);
     glLoadIdentity();
-
     // Fixed camera.
     gluLookAt(0.0, 200.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0);
-
     // Draw solar systems using sphere list.
     drawingSystem();
 	// End left viewport.
@@ -161,15 +205,14 @@ void drawScene(void)
 // OpenGL window reshape routine.
 void resize(int w, int h)
 {
-	glViewport(0, 0, w, h);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glFrustum(-5.0, 5.0, -5.0, 5.0, 5.0, 250.0);
-	glMatrixMode(GL_MODELVIEW);
-
-	// Pass the size of the OpenGL window.
-	width = w;
-	height = h;
+    width = w;
+    height = h;
+    glViewport(0, 0, width, height);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(60.0, (float)width / (float)height, 1.0, 200.0);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 }
 // Timer function.
 void animate(int value)
