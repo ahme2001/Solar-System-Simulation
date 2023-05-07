@@ -29,12 +29,24 @@ static unsigned int sphere;
 static float latAngle = 0.0; // Latitudinal angle.
 static int isAnimate = 0; // Animated?
 static int animationPeriod = 100; // Time interval between frames.
+static float angle = 0.0; // Angle of the spacecraft.
+static float xVal = 0, zVal = 130; // Co-ordinates of the spacecraft.
+static unsigned int spacecraft; // Display lists base index.
 
 // Initialization routine.
 void setup(void)
 {
     glEnable(GL_DEPTH_TEST);
 	// Initialize global arrayAsteroids.
+	spacecraft = glGenLists(1);
+	glNewList(spacecraft, GL_COMPILE);
+	glPushMatrix();
+	glRotatef(180.0, 0.0, 1.0, 0.0); // To make the spacecraft point down the $z$-axis initially.
+	glColor3f(1.0, 1.0, 1.0);
+	glutWireCone(5.0, 10.0, 10, 10);
+	glPopMatrix();
+	glEndList();
+
     sphere = glGenLists(2);
     glNewList(sphere,GL_COMPILE);
     glutSolidSphere(radius, 50, 60);
@@ -185,16 +197,49 @@ void drawScene(void)
 	glViewport(0, 0, width , height);
 	glLoadIdentity();
     // Fixed camera.
-    gluLookAt(0.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    //gluLookAt(0.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+    gluLookAt(xVal - 10 * sin((M_PI / 180.0) * angle),
+		0.0,
+		zVal - 10 * cos((M_PI / 180.0) * angle),
+		xVal - 11 * sin((M_PI / 180.0) * angle),
+		0.0,
+		zVal - 11 * cos((M_PI / 180.0) * angle),
+		0.0,
+		1.0,
+		0.0);
 	// Draw solar system.
     drawingSystem();
-	// End right viewport.
 
-	// Beg	in left viewport.
+	// End space craft viewport.
+
+	// Beg	in plane viewport.
     glViewport(3.0 * width / 4.0, 0, width / 3.0, height/3.0);
     glLoadIdentity();
+
+    // separate two views
+	glColor3f(1.0, 1.0, 1.0);
+	glLineWidth(5.0);
+	// Draw vertical line.
+    glBegin(GL_LINES);
+    glVertex3f(-5.0, -5.0, -5.0);
+	glVertex3f(-5.0, 5.0, -5.0);
+    glEnd();
+    // Draw horizontal line.
+    glBegin(GL_LINES);
+	glVertex3f(-5.0, 5.0, -5.0);
+    glVertex3f(5.0, 5.0, -5.0);
+    glEnd();
+	glLineWidth(1.0);
+
     // Fixed camera.
-    gluLookAt(0.0, 200.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0);
+    gluLookAt(0.0, 140.0, 150.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+    // Draw spacecraft.
+    glColor3f(1.0, 1.0, 1.0);
+	glPushMatrix();
+	glTranslatef(xVal, 0.0, zVal);
+	glRotatef(angle, 0.0, 1.0, 0.0);
+	glCallList(spacecraft);
+	glPopMatrix();
     // Draw solar systems using sphere list.
     drawingSystem();
 	// End left viewport.
@@ -205,14 +250,15 @@ void drawScene(void)
 // OpenGL window reshape routine.
 void resize(int w, int h)
 {
-    width = w;
-    height = h;
-    glViewport(0, 0, width, height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(60.0, (float)width / (float)height, 1.0, 200.0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glFrustum(-5.0, 5.0, -5.0, 5.0, 5.0, 250.0);
+	glMatrixMode(GL_MODELVIEW);
+
+	// Pass the size of the OpenGL window.
+	width = w;
+	height = h;
 }
 // Timer function.
 void animate(int value)
@@ -249,11 +295,33 @@ void keyInput(unsigned char key, int x, int y)
 // Callback routine for non-ASCII key entry.
 void specialKeyInput(int key, int x, int y)
 {
+	float tempxVal = xVal, tempzVal = zVal, tempAngle = angle;
+
 	// Compute next position.
-	if (key == GLUT_KEY_LEFT)
-	if (key == GLUT_KEY_RIGHT)
+	if (key == GLUT_KEY_LEFT) tempAngle = angle + 5.0;
+	if (key == GLUT_KEY_RIGHT) tempAngle = angle - 5.0;
 	if (key == GLUT_KEY_UP)
+	{
+		tempxVal = xVal - sin(angle * M_PI / 180.0);
+		tempzVal = zVal - cos(angle * M_PI / 180.0);
+	}
 	if (key == GLUT_KEY_DOWN)
+	{
+		tempxVal = xVal + sin(angle * M_PI / 180.0);
+		tempzVal = zVal + cos(angle * M_PI / 180.0);
+	}
+
+	// Angle correction.
+	if (tempAngle > 360.0) tempAngle -= 360.0;
+	if (tempAngle < 0.0) tempAngle += 360.0;
+
+	// Move spacecraft to next position only if there will not be collision with an asteroid.
+	//if (!asteroidCraftCollision(tempxVal, tempzVal, tempAngle))
+	//{
+		xVal = tempxVal;
+		zVal = tempzVal;
+		angle = tempAngle;
+	//}
 
 	glutPostRedisplay();
 }
