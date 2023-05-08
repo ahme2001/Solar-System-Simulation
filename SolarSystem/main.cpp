@@ -10,7 +10,6 @@
 #include <cstdint>  // for uintptr_t
 
 // Globals.
-static int width, height; // Size of the OpenGL window.
 std::vector<glm::vec3> points = {
 glm::vec3(0.0, 0.0, 0.0),  // sun
 glm::vec3(0.0, 0.0, 40.0), // mercury
@@ -23,16 +22,27 @@ glm::vec3(0.0, 0.0, 140.0),  // saturn
 glm::vec3(0.0, 0.0, 170.0), // uranus
 glm::vec3(0.0, 0.0, 190.0)  // neptune
 };
-std::vector<float> sizePlanet = {5.0,0.4,0.9,1.0,0.25,0.6,3.0,2.8,1.25,1.2};
+GLfloat solar_diffuses[][4] = {
+{1.0, 1.0, 0.0, 1.0}, // sun
+{0.6f, 0.6f, 0.6f, 1.0}, // mercury
+{0.8f, 0.5f, 0.2, 1.0}, // venus
+{0.0f, 0.5f, 1.0f, 1.0}, // earth
+{0.8f, 0.8f, 0.8f, 1.0}, // moon
+{1.0f, 0.2f, 0.0f, 1.0},
+{0.8f, 0.6f, 0.4f, 1.0},
+{1.0f, 0.9f, 0.6f, 1.0},
+{0.6f, 0.9f, 0.9f, 1.0},
+{0.2f, 0.4f, 1.0f, 1.0}};
+GLfloat rotation[] = {0.0,1.59,1.17,1.0,1.0,0.8,0.46,0.33,0.228,0.182};
+std::vector<GLfloat> sizePlanet = {5.0,0.4,0.9,1.0,0.25,0.6,3.0,2.8,1.25,1.2};
 
-static int radius = 6;
-static unsigned int sphere;
+static int width, height; // Size of the OpenGL window.
 static float latAngle = 0.0; // Latitudinal angle.
 static int isAnimate = 0; // Animated?
 static int animationPeriod = 100; // Time interval between frames.
-static float angle = 90.0; // Angle of the spacecraft.
-static float xVal = 220, zVal = 0; // Co-ordinates of the spacecraft.
+static float angle = 90.0 , xVal = 220, zVal = 0; // Angle & Co-ordinates of the spacecraft.
 static unsigned int spacecraft; // Display lists base index.
+static unsigned int sphere;
 
 // lighting
 static float d = 3.0; // Diffuse and specular white light intensity.
@@ -43,10 +53,12 @@ static float t = 0.0; // Quadratic attenuation factor.
 void setup(void)
 {
     glEnable(GL_DEPTH_TEST);
+
 	spacecraft = glGenLists(1);
 	glNewList(spacecraft, GL_COMPILE);
 	glPushMatrix();
 	glRotatef(180.0, 0.0, 1.0, 0.0); // To make the spacecraft point down the $z$-axis initially.
+	glScalef(2.0,2.0,2.0);
 	glColor3f(1.0, 1.0, 1.0);
 	glutWireCone(5.0, 10.0, 10, 10);
 	glPopMatrix();
@@ -54,24 +66,20 @@ void setup(void)
 
     sphere = glGenLists(2);
     glNewList(sphere,GL_COMPILE);
-    glutSolidSphere(radius, 50, 60);
+    glutSolidSphere(6, 50, 60);
     glEndList();
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
-
 	// Turn on OpenGL lighting.
 	glEnable(GL_LIGHTING);
-
 	// Material property vectors.
 	float matAmbAndDif[] = { 0.0, 0.0, 0.0, 1.0 };
 	float matSpec[] = { 1.0, 1.0, 1,0, 1.0 };
 	float matShine[] = { 100.0 };
-
 	// Material properties of ball.
 	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, matAmbAndDif);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, matSpec);
 	glMaterialfv(GL_FRONT, GL_SHININESS, matShine);
-
 	// Cull back faces.
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -80,127 +88,31 @@ void setup(void)
 void drawingSystem(void){
     // sun
     glColor3f(1.0, 1.0, 0.0);
-    GLfloat sun_ambient[] = {0.0, 0.0, 1.0, 1.0};
-    GLfloat sun_diffuse[] = {1.0, 1.0, 0.0, 1.0}; // Change this line
-    glMaterialfv(GL_FRONT, GL_AMBIENT, sun_ambient);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, sun_diffuse);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, solar_diffuses[0]);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, solar_diffuses[0]);
     glPushMatrix();
     glTranslatef(points[0].x,points[0].y,points[0].z);
     glScalef(sizePlanet[0],sizePlanet[0],sizePlanet[0]);
     glCallList(sphere); // Execute display list.
     glPopMatrix();
     glEnable(GL_LIGHTING);
-    // mercury
-    //glColor3f(0.6f, 0.6f, 0.6f);
-    GLfloat mercury_ambient[] = {0.8, 0.8, 0.8, 1.0};
-    GLfloat mercury_diffuse[] = {0.6f, 0.6f, 0.6f, 1.0};
-    glMaterialfv(GL_FRONT, GL_AMBIENT, mercury_diffuse);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, mercury_diffuse);
-    glPushMatrix();
-	glRotatef(latAngle*1.59, 0.0, 1.0, 0.0);
-    glTranslatef(points[1].x,points[1].y,points[1].z);
-    glScalef(sizePlanet[1],sizePlanet[1],sizePlanet[1]);
-    glCallList(sphere);
-    glPopMatrix();
-    // venus
-    glColor3f(0.8f, 0.5f, 0.2);
-    GLfloat venus_ambient[] = {0.0, 0.5, 1.0, 1.0};
-    GLfloat venus_diffuse[] = {0.8f, 0.5f, 0.2, 1.0};
-    glMaterialfv(GL_FRONT, GL_AMBIENT, venus_diffuse);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, venus_diffuse);
-    glPushMatrix();
-	glRotatef(latAngle*1.17, 0.0, 1.0, 0.0);
-    glTranslatef(points[2].x,points[2].y,points[2].z);
-    glScalef(sizePlanet[2],sizePlanet[2],sizePlanet[2]);
-    glCallList(sphere); // Execute display list.
-    glPopMatrix();
-    // earth
-   // glColor3f(0.0f, 0.0f, 1.0f);
-    GLfloat earth_ambient[] = {1.0, 1.0 , 0.0, 1.0};
-    GLfloat earth_diffuse[] = {0.0f, 0.5f, 1.0f, 1.0};
-    glMaterialfv(GL_FRONT, GL_AMBIENT, earth_diffuse);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, earth_diffuse);
-    glPushMatrix();
-    glRotatef(latAngle, 0.0, 1.0, 0.0);
-    glTranslatef(points[3].x,points[3].y,points[3].z);
-    glScalef(sizePlanet[3],sizePlanet[3],sizePlanet[3]);
-    glCallList(sphere); // Execute display list.
-    glPopMatrix();
-    // moon
-    //glColor3f(0.8f, 0.8f, 0.8f);
-    GLfloat moon_diffuse[] = {0.8f, 0.8f, 0.8f, 1.0};
-    glMaterialfv(GL_FRONT, GL_AMBIENT, moon_diffuse);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, moon_diffuse);
-    glPushMatrix();
-	glRotatef(latAngle, 0.0, 1.0, 0.0);
-	glRotatef(50*latAngle, 0.0, 0.0, 1.0);
-	glTranslatef(points[4].x,points[4].y,points[4].z);
-    glScalef(sizePlanet[4],sizePlanet[4],sizePlanet[4]);
-    glCallList(sphere); // Execute display list.
-    glPopMatrix();
-    // mars
-    //glColor3f(1.0f, 0.0f, 0.0f);
-    GLfloat mars_ambient[] = {0.5, 0.5, 0.5, 1.0};
-    GLfloat mars_diffuse[] = {1.0f, 0.2f, 0.0f, 1.0};
-    glMaterialfv(GL_FRONT, GL_AMBIENT, mars_diffuse);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, mars_diffuse);
-    glPushMatrix();
-    glRotatef(latAngle*0.8, 0.0, 1.0, 0.0);
-    glTranslatef(points[5].x,points[5].y,points[5].z);
-    glScalef(sizePlanet[5],sizePlanet[5],sizePlanet[5]);
-    glCallList(sphere); // Execute display list.
-    glPopMatrix();
-    // Jupiter
-    //glColor3f(0.8f, 0.6f, 0.4f);
-    GLfloat Jupiter_ambient[] = {0.2, 0.4, 0.7, 1.0};
-    GLfloat Jupiter_diffuse[] = {0.8f, 0.6f, 0.4f, 1.0};
-    glMaterialfv(GL_FRONT, GL_AMBIENT, Jupiter_diffuse);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, Jupiter_diffuse);
-    glPushMatrix();
-    glRotatef(latAngle*0.46, 0.0, 1.0, 0.0);
-    glTranslatef(points[6].x,points[6].y,points[6].z);
-    glScalef(sizePlanet[6],sizePlanet[6],sizePlanet[6]);
-    glCallList(sphere); // Execute display list.
-    glPopMatrix();
-    // Saturn
-    //glColor3f(1.0f, 0.9f, 0.75f);
-    GLfloat Saturn_ambient[] = {0.1, 0.3, 0.8, 1.0};
-    GLfloat Saturn_diffuse[] = {1.0f, 0.9f, 0.6f, 1.0};
-    glMaterialfv(GL_FRONT, GL_AMBIENT, Saturn_diffuse);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, Saturn_diffuse);
-    glPushMatrix();
-    glRotatef(latAngle*0.33, 0.0, 1.0, 0.0);
-    glTranslatef(points[7].x,points[7].y,points[7].z);
-    glScalef(sizePlanet[7],sizePlanet[7],sizePlanet[7]);
-    glCallList(sphere); // Execute display list.
-    glColor3f(0.0, 1.0, 0.0);
-    glRotatef(40.0,1.0,0.0,0.0);
-	glutSolidTorus(1.0, 7.0, 5, 20);
-    glPopMatrix();
-    // Uranus
-    //glColor3f( 0.6f, 0.8f, 0.9f);
-    GLfloat Uranus_ambient[] = {0.4, 0.2, 0.1, 1.0};
-    GLfloat Uranus_diffuse[] = {0.6f, 0.9f, 0.9f, 1.0};
-    glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, Uranus_diffuse);
-    glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, Uranus_diffuse);
-    glPushMatrix();
-    glRotatef(latAngle*0.228, 0.0, 1.0, 0.0);
-    glTranslatef(points[8].x,points[8].y,points[8].z);
-    glScalef(sizePlanet[8],sizePlanet[8],sizePlanet[8]);
-    glCallList(sphere); // Execute display list.
-    glPopMatrix();
-    // Neptune
-    //glColor3f( 0.2f, 0.4f, 1.0f);
-    GLfloat Neptune_ambient[] = {0.8, 0.6, 0.0, 1.0};
-    GLfloat Neptune_diffuse[] = {0.2f, 0.4f, 1.0f, 1.0};
-    glMaterialfv(GL_FRONT, GL_AMBIENT, Neptune_diffuse);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, Neptune_diffuse);
-    glPushMatrix();
-    glRotatef(latAngle*0.182, 0.0, 1.0, 0.0);
-    glTranslatef(points[9].x,points[9].y,points[9].z);
-    glScalef(sizePlanet[9],sizePlanet[9],sizePlanet[9]);
-    glCallList(sphere); // Execute display list.
-    glPopMatrix();
+    // draw planets and moon
+    for(int i=1;i<10;i++){
+        glMaterialfv(GL_FRONT, GL_AMBIENT, solar_diffuses[i]);
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, solar_diffuses[i]);
+        glPushMatrix();
+        glRotatef(latAngle*rotation[i], 0.0, 1.0, 0.0);
+        if(i == 4) glRotatef(50*latAngle, 0.0, 0.0, 1.0); // control rotation of moon around earth
+        glTranslatef(points[i].x,points[i].y,points[i].z);
+        glScalef(sizePlanet[i],sizePlanet[i],sizePlanet[i]);
+        glCallList(sphere);
+        if(i == 7){// draw ring around saturn
+            glColor3f(0.0, 1.0, 0.0);
+            glRotatef(40.0,1.0,0.0,0.0);
+            glutSolidTorus(1.0, 7.0, 5, 20);
+        }
+        glPopMatrix();
+    }
 }
 
 // Drawing routine.
@@ -221,7 +133,6 @@ void drawScene(void)
     glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, t);
 	glLoadIdentity();
     // Fixed camera.
-    //gluLookAt(0.0, 0.0, 150.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
     gluLookAt(xVal - 10 * sin((M_PI / 180.0) * angle),
 		0.0,
 		zVal - 10 * cos((M_PI / 180.0) * angle),
@@ -235,10 +146,9 @@ void drawScene(void)
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
 	// Draw solar system.
     drawingSystem();
-
 	// End space craft viewport.
 
-	// Beg	in plane viewport.
+	// Begin plane viewport.
     glViewport(3.0 * width / 4.0, 0, width / 3.0, height/3.0);
     glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, t);
     glLoadIdentity();
@@ -246,13 +156,11 @@ void drawScene(void)
     // separate two views
 	glColor3f(1.0, 1.0, 1.0);
 	glLineWidth(5.0);
-	// Draw vertical line.
-    glBegin(GL_LINES);
+    glBegin(GL_LINES); // Draw vertical line.
     glVertex3f(-5.0, -5.0, -5.0);
 	glVertex3f(-5.0, 5.0, -5.0);
     glEnd();
-    // Draw horizontal line.
-    glBegin(GL_LINES);
+    glBegin(GL_LINES); // Draw horizontal line.
 	glVertex3f(-5.0, 5.0, -5.0);
     glVertex3f(5.0, 5.0, -5.0);
     glEnd();
@@ -267,27 +175,14 @@ void drawScene(void)
 	glRotatef(angle, 0.0, 1.0, 0.0);
 	glCallList(spacecraft);
 	glPopMatrix();
+
 	glDisable(GL_LIGHTING);
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
-    // Draw solar systems using sphere list.
+    // Draw solar systems
     drawingSystem();
-	// End left viewport.
+	// End plane viewport.
 
 	glutSwapBuffers();
-}
-
-// OpenGL window reshape routine.
-void resize(int w, int h)
-{
-    glViewport(0, 0, w, h);
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glFrustum(-10.0, 10.0, -5.0, 5.0, 5.0, 500.0);
-	glMatrixMode(GL_MODELVIEW);
-
-	// Pass the size of the OpenGL window.
-	width = w;
-	height = h;
 }
 // Timer function.
 void animate(int value)
@@ -371,7 +266,6 @@ void specialKeyInput(int key, int x, int y)
 		tempxVal = xVal + sin(angle * M_PI / 180.0);
 		tempzVal = zVal + cos(angle * M_PI / 180.0);
 	}
-
 	// Angle correction.
 	if (tempAngle > 360.0) tempAngle -= 360.0;
 	if (tempAngle < 0.0) tempAngle += 360.0;
@@ -394,7 +288,18 @@ void printInteraction(void)
 	std::cout << "Press the left/right arrow keys to turn the craft." << std::endl
 		<< "Press the up/down arrow keys to move the craft." << std::endl;
 }
-
+// OpenGL window reshape routine.
+void resize(int w, int h)
+{
+    // Pass the size of the OpenGL window.
+	width = w;
+	height = h;
+    glViewport(0, 0, w, h);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glFrustum(-10.0, 10.0, -5.0, 5.0, 5.0, 500.0);
+	glMatrixMode(GL_MODELVIEW);
+}
 // Main routine.
 int main(int argc, char **argv)
 {
@@ -407,7 +312,7 @@ int main(int argc, char **argv)
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
 	glutInitWindowSize(1800, 800);
 	glutInitWindowPosition(100, 100);
-	glutCreateWindow("spaceTravel.cpp");
+	glutCreateWindow("Solar System Simulation.cpp");
 	glutDisplayFunc(drawScene);
 	glutReshapeFunc(resize);
 	glutKeyboardFunc(keyInput);
