@@ -56,7 +56,7 @@ static float latAngle = 0.0; // Latitudinal angle.
 static int isAnimate = 0; // Animated?
 static int isCollision = 0;
 static int animationPeriod = 100; // Time interval between frames.
-static float angle = 90.0 , xVal = 220, zVal = 0; // Angle & Co-ordinates of the spacecraft.
+static float angle = 180.0 , xVal = 0, zVal = -220; // Angle & Co-ordinates of the spacecraft.
 static unsigned int spacecraft; // Display lists base index.
 static unsigned int sphere;
 
@@ -77,7 +77,7 @@ void setup(void)
 
     sphere = glGenLists(2);
     glNewList(sphere,GL_COMPILE);
-    glutSolidSphere(6, 50, 60);
+    glutSolidSphere(6, 150, 160);
     glEndList();
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
@@ -102,13 +102,11 @@ void writeBitmapString(void *font, char *string)
 
 	for (c = string; *c != '\0'; c++) glutBitmapCharacter(font, *c);
 }
-
 int checkSpheresIntersection(float x1, float y1, float z1, float r1,
 	float x2, float y2, float z2, float r2)
 {
 	return ((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2) + (z1 - z2)*(z1 - z2) <= (r1 + r2)*(r1 + r2));
 }
-
 // Function to check if the spacecraft collides with an asteroid when the center of the base
 // of the craft is at (x, 0, z) and it is aligned at an angle a to to the -z direction.
 // Collision detection is approximate as instead of the spacecraft we use a bounding sphere.
@@ -204,17 +202,17 @@ void drawScene(void)
 	glColor3f(1.0, 1.0, 1.0);
 	glLineWidth(5.0);
     glBegin(GL_LINES); // Draw vertical line.
-    glVertex3f(-5.0, -5.0, -5.0);
-	glVertex3f(-5.0, 5.0, -5.0);
+    glVertex3f(-10.0, -5.0, -5.0);
+	glVertex3f(-10.0, 5.0, -5.0);
     glEnd();
     glBegin(GL_LINES); // Draw horizontal line.
-	glVertex3f(-5.0, 5.0, -5.0);
+	glVertex3f(-10.0, 5.0, -5.0);
     glVertex3f(5.0, 5.0, -5.0);
     glEnd();
 	glLineWidth(1.0);
 
     // Fixed camera.
-    gluLookAt(0.0, 250.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0);
+    gluLookAt(0.0, 210.0, 0.0, 0.0, 50.0, 30.0, 1.0, 0.0, 0.0);
     // Draw spacecraft.
     glColor3f(1.0, 1.0, 1.0);
 	glPushMatrix();
@@ -267,7 +265,6 @@ void keyInput(unsigned char key, int x, int y)
 void specialKeyInput(int key, int x, int y)
 {
 	float tempxVal = xVal, tempzVal = zVal, tempAngle = angle;
-
 	// Compute next position.
 	if (key == GLUT_KEY_LEFT) tempAngle = angle + 5.0;
 	if (key == GLUT_KEY_RIGHT) tempAngle = angle - 5.0;
@@ -285,7 +282,7 @@ void specialKeyInput(int key, int x, int y)
 	if (tempAngle > 360.0) tempAngle -= 360.0;
 	if (tempAngle < 0.0) tempAngle += 360.0;
 
-	// Move spacecraft to next position only if there will not be collision with an asteroid.
+	// Move spacecraft to next position only if there will not be collision with any sphere.
 	if (!asteroidCraftCollision(tempxVal, tempzVal, tempAngle))
 	{
 	    isCollision = 0;
@@ -294,9 +291,9 @@ void specialKeyInput(int key, int x, int y)
 		angle = tempAngle;
 	}else{
 	    isCollision = 1;
-        xVal = 200;
-        zVal = 0;
-        angle = 90;
+        xVal = 0;
+        zVal = -220;
+        angle = 180;
 	}
 
 	glutPostRedisplay();
@@ -306,7 +303,8 @@ void specialKeyInput(int key, int x, int y)
 void printInteraction(void)
 {
 	std::cout << "Interaction:" << std::endl;
-	std::cout << "Press the left/right arrow keys to turn the craft." << std::endl
+	std::cout << "Press space to begin rotation." << std::endl
+        << "Press the left/right arrow keys to turn the craft." << std::endl
 		<< "Press the up/down arrow keys to move the craft." << std::endl;
 }
 // OpenGL window reshape routine.
