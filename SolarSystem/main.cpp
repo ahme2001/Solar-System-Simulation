@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/constants.hpp>
 #include <cstdint>  // for uintptr_t
+#include <stdlib.h>
 
 // Globals.
 std::vector<glm::vec3> points = {
@@ -56,7 +57,7 @@ static float latAngle = 0.0; // Latitudinal angle.
 static int isAnimate = 0; // Animated?
 static int isCollision = 0;
 static int animationPeriod = 100; // Time interval between frames.
-static float angle = 180.0 , xVal = 0, zVal = -220; // Angle & Co-ordinates of the spacecraft.
+static float angle = 90.0 , xVal = 220, zVal = 0; // Angle & Co-ordinates of the spacecraft.
 static unsigned int spacecraft; // Display lists base index.
 static unsigned int sphere;
 
@@ -83,17 +84,11 @@ void setup(void)
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	// Turn on OpenGL lighting.
 	glEnable(GL_LIGHTING);
+
 	// Material property vectors.
-	float matAmbAndDif[] = { 0.0, 0.0, 0.0, 1.0 };
-	float matSpec[] = { 1.0, 1.0, 1,0, 1.0 };
-	float matShine[] = { 100.0 };
+	float matShine[] = { 50.0 };
 	// Material properties of ball.
-	glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, matAmbAndDif);
-	glMaterialfv(GL_FRONT, GL_SPECULAR, matSpec);
 	glMaterialfv(GL_FRONT, GL_SHININESS, matShine);
-	// Cull back faces.
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
 }
 // Routine to draw a bitmap character string.
 void writeBitmapString(void *font, char *string)
@@ -107,9 +102,8 @@ int checkSpheresIntersection(float x1, float y1, float z1, float r1,
 {
 	return ((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2) + (z1 - z2)*(z1 - z2) <= (r1 + r2)*(r1 + r2));
 }
-// Function to check if the spacecraft collides with an asteroid when the center of the base
-// of the craft is at (x, 0, z) and it is aligned at an angle a to to the -z direction.
-// Collision detection is approximate as instead of the spacecraft we use a bounding sphere.
+
+
 int asteroidCraftCollision(float x, float z, float a)
 {
 	int i;
@@ -137,13 +131,15 @@ void drawingSystem(void){
         glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, solar_diffuses[i]);
         glPushMatrix();
         glRotatef(latAngle*rotation[i], 0.0, 1.0, 0.0);
-        if(i == 4) glRotatef(50*latAngle, 0.0, 0.0, 1.0); // control rotation of moon around earth
+        if(i == 4) {
+            glRotatef(50*latAngle, 0.0, 0.0, 1.0); // control rotation of moon around earth
+        }
         glTranslatef(points[i].x,points[i].y,points[i].z);
         glScalef(sizePlanet[i],sizePlanet[i],sizePlanet[i]);
         glCallList(sphere);
         if(i == 7){ // draw ring around saturn
             glColor3f(0.0, 1.0, 0.0);
-            glRotatef(30.0,1.0,0.0,0.0);
+            glRotatef(60.0,1.0,0.0,0.0);
             glutSolidTorus(0.5, 7.0, 5, 30);
         }
         glPopMatrix();
@@ -158,18 +154,15 @@ void drawingSystem(void){
 void drawScene(void)
 {
     float lightAmb[] = { 0.0, 0.0, 0.0, 1.0 };
-	float lightDifAndSpec0[] = { 2.0, 2.0, 2.0, 1.0 };
+	float lightDif[] = { 2.0, 2.0, 2.0, 1.0 };
 	float lightPos0[] = { 0.0, 0.0, 0.0, 1.0 };
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmb);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDifAndSpec0);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, lightDifAndSpec0);
-	glLightModeli(GL_LIGHT_MODEL_LOCAL_VIEWER, 1); // Enable local viewpoint
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDif);
 	glEnable(GL_LIGHT0);
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	// Begin whole viewport.
 	glViewport(0, 0, width , height);
-    glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0);
 	glLoadIdentity();
 	// Write text in isolated (i.e., before gluLookAt) translate block.
     glPushMatrix();
@@ -195,7 +188,6 @@ void drawScene(void)
 
 	// Begin plane viewport.
     glViewport(3.0 * width / 4.0, 0, width / 3.0, height/3.0);
-    glLightf(GL_LIGHT0, GL_QUADRATIC_ATTENUATION, 0.0);
     glLoadIdentity();
 
     // separate two views
@@ -204,8 +196,6 @@ void drawScene(void)
     glBegin(GL_LINES); // Draw vertical line.
     glVertex3f(-10.0, -5.0, -5.0);
 	glVertex3f(-10.0, 5.0, -5.0);
-    glEnd();
-    glBegin(GL_LINES); // Draw horizontal line.
 	glVertex3f(-10.0, 5.0, -5.0);
     glVertex3f(5.0, 5.0, -5.0);
     glEnd();
@@ -289,6 +279,8 @@ void specialKeyInput(int key, int x, int y)
 		xVal = tempxVal;
 		zVal = tempzVal;
 		angle = tempAngle;
+		printf("%d ",xVal);
+		printf("%d ",zVal);
 	}else{
 	    isCollision = 1;
         xVal = 0;
