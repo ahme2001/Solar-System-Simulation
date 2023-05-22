@@ -11,31 +11,32 @@
 #include <glm/gtc/constants.hpp>
 #include <cstdint>  // for uintptr_t
 #include <stdlib.h>
+#include "stb_image.h"
 
 // Globals.
 std::vector<glm::vec3> points = {
 glm::vec3(0.0, 0.0, 0.0),  // sun
 glm::vec3(0.0 ,0.0, 40.0), // mercury
-glm::vec3(0.0, 0.0, 50.0),  // venus
-glm::vec3(0.0, 0.0, 62.0), // earth
-glm::vec3(0.0, 10.0, 62.0), // moon
-glm::vec3(0.0, 0.0, 75.0),  // mars
-glm::vec3(0.0, 0.0, 100.0), // jupiter
-glm::vec3(0.0, 0.0, 140.0),  // saturn
-glm::vec3(0.0, 0.0, 170.0), // uranus
-glm::vec3(0.0, 0.0, 190.0)  // neptune
+glm::vec3(0.0, 0.0, 60.0),  // venus
+glm::vec3(0.0, 0.0, 82.0), // earth
+glm::vec3(0.0, 2.0, 72.0), // moon
+glm::vec3(0.0, 0.0, 100.0),  // mars
+glm::vec3(0.0, 0.0, 125.0), // jupiter
+glm::vec3(0.0, 0.0, 165.0),  // saturn
+glm::vec3(0.0, 0.0, 195.0), // uranus
+glm::vec3(0.0, 0.0, 215.0)  // neptune
 };
 std::vector<glm::vec3> newPosition = {
 glm::vec3(0.0, 0.0, 0.0),  // sun
-glm::vec3(0.0, 0.0, 40.0), // mercury
-glm::vec3(0.0, 0.0, 50.0),  // venus
-glm::vec3(0.0, 0.0, 62.0), // earth
-glm::vec3(0.0, 10.0, 62.0), // moon
-glm::vec3(0.0, 0.0, 75.0),  // mars
-glm::vec3(0.0, 0.0, 100.0), // jupiter
-glm::vec3(0.0, 0.0, 140.0),  // saturn
-glm::vec3(0.0, 0.0, 170.0), // uranus
-glm::vec3(0.0, 0.0, 190.0)  // neptune
+glm::vec3(0.0 ,0.0, 40.0), // mercury
+glm::vec3(0.0, 0.0, 60.0),  // venus
+glm::vec3(0.0, 0.0, 82.0), // earth
+glm::vec3(0.0, 2.0, 72.0), // moon
+glm::vec3(0.0, 0.0, 100.0),  // mars
+glm::vec3(0.0, 0.0, 125.0), // jupiter
+glm::vec3(0.0, 0.0, 165.0),  // saturn
+glm::vec3(0.0, 0.0, 195.0), // uranus
+glm::vec3(0.0, 0.0, 215.0)  // neptune
 };
 GLfloat solar_diffuses[][4] = {
 {1.0, 1.0, 0.0, 1.0}, // sun
@@ -50,6 +51,7 @@ GLfloat solar_diffuses[][4] = {
 {0.2f, 0.4f, 1.0f, 1.0}};
 GLfloat rotation[] = {0.0,1.59,1.17,1.0,1.0,0.8,0.46,0.33,0.228,0.182};
 std::vector<GLfloat> sizePlanet = {5.0,0.4,0.9,1.0,0.25,0.6,3.0,2.5,1.25,1.2};
+std::vector<glm::vec3> starPositions;
 
 static uintptr_t font = reinterpret_cast<uintptr_t>(GLUT_BITMAP_8_BY_13); // Font selection
 static int width, height; // Size of the OpenGL window.
@@ -80,6 +82,18 @@ void setup(void)
     glNewList(sphere,GL_COMPILE);
     glutSolidSphere(6, 150, 160);
     glEndList();
+
+    // Initialize positions of points randomly within a sphere.
+    for (int i = 0; i < 80; i++) {
+        float r = rand()%300 + 50; // random radius between 50 and 300
+        float theta = rand()%360;
+        float phi = rand() % 180;
+        float x = r * sin(phi) * cos(theta);
+        float y = r * sin(phi) * sin(theta);
+        float z = r * cos(phi);
+        glm::vec3 new_position(x, y, z);
+        starPositions.push_back(new_position);
+    }
 
 	glClearColor(0.0, 0.0, 0.0, 0.0);
 	// Turn on OpenGL lighting.
@@ -118,6 +132,14 @@ int asteroidCraftCollision(float x, float z, float a)
 }
 
 void drawingSystem(void){
+    // Draw stars.
+    glPointSize(2);
+    glColor3f(1.0, 1.0, 1.0);
+    glBegin(GL_POINTS);
+    for (int i = 0; i < starPositions.size(); i++) {
+        glVertex3f(starPositions[i].x, starPositions[i].y, starPositions[i].z);
+    }
+    glEnd();
     // sun
     glColor3f(1.0, 1.0, 0.0);
     glPushMatrix();
@@ -132,7 +154,9 @@ void drawingSystem(void){
         glPushMatrix();
         glRotatef(latAngle*rotation[i], 0.0, 1.0, 0.0);
         if(i == 4) {
-            glRotatef(50*latAngle, 0.0, 0.0, 1.0); // control rotation of moon around earth
+            glTranslatef(0,0,81);
+            glRotatef(360.0/27.0 * latAngle, 0.0, 1.0, 0.0);
+            glTranslatef(0,0,-81);
         }
         glTranslatef(points[i].x,points[i].y,points[i].z);
         glScalef(sizePlanet[i],sizePlanet[i],sizePlanet[i]);
@@ -202,7 +226,7 @@ void drawScene(void)
 	glLineWidth(1.0);
 
     // Fixed camera.
-    gluLookAt(0.0, 210.0, 0.0, 0.0, 50.0, 30.0, 1.0, 0.0, 0.0);
+    gluLookAt(0.0, 290.0, 0.0, 0.0, 50.0, 30.0, 1.0, 0.0, 0.0);
     // Draw spacecraft.
     glColor3f(1.0, 1.0, 1.0);
 	glPushMatrix();
@@ -279,8 +303,6 @@ void specialKeyInput(int key, int x, int y)
 		xVal = tempxVal;
 		zVal = tempzVal;
 		angle = tempAngle;
-		printf("%d ",xVal);
-		printf("%d ",zVal);
 	}else{
 	    isCollision = 1;
         xVal = 0;

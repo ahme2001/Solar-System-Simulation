@@ -7,7 +7,7 @@
 	<GL/freeglut.h>
 	<cstdint>
 
-1684518795 source:d:\engneering\level 3\semester 2\graphics\sections\project\solar-system-simulation\solarsystem\main.cpp
+1684753595 source:d:\engneering\level 3\semester 2\graphics\sections\project\solar-system-simulation\solarsystem\main.cpp
 	<cstdlib>
 	<cmath>
 	<iostream>
@@ -17,5 +17,24 @@
 	<glm/vec3.hpp>
 	<glm/glm.hpp>
 	<glm/gtc/constants.hpp>
+	<cstdint>
 	<stdlib.h>
+	"stb_image.h"
+
+1684746273 d:\engneering\level 3\semester 2\graphics\sections\project\solar-system-simulation\solarsystem\stb_image.h
+	"stb_image.h"
+	<stdio.h>
+	<stdlib.h>
+	<stdarg.h>
+	<stddef.h>
+	<stdlib.h>
+	<string.h>
+	<limits.h>
+	<math.h>
+	<stdio.h>
+	<assert.h>
+	<stdint.h>
+	<emmintrin.h>
+	<intrin.h>
+	<arm_neon.h>
 
