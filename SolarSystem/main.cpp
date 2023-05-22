@@ -11,7 +11,7 @@
 #include <glm/gtc/constants.hpp>
 #include <cstdint>  // for uintptr_t
 #include <stdlib.h>
-#include "stb_image.h"
+
 
 // Globals.
 std::vector<glm::vec3> points = {
@@ -204,8 +204,18 @@ void drawScene(void)
 		0.0,
 		1.0,
 		0.0);
+
     glDisable(GL_LIGHTING);
     glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
+
+    // Draw spacecraft.
+    glColor3f(1.0, 1.0, 1.0);
+	glPushMatrix();
+	glTranslatef(xVal + 11 * sin((M_PI / 180.0) * angle), 0.0,
+              zVal + 11 * cos((M_PI / 180.0) * angle) );
+	glRotatef(angle, 0.0, 1.0, 0.0);
+	glCallList(spacecraft);
+	glPopMatrix();
 	// Draw solar system.
     drawingSystem();
 	// End space craft viewport.
@@ -214,6 +224,8 @@ void drawScene(void)
     glViewport(3.0 * width / 4.0, 0, width / 3.0, height/3.0);
     glLoadIdentity();
 
+    glDisable(GL_LIGHTING);
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
     // separate two views
 	glColor3f(1.0, 1.0, 1.0);
 	glLineWidth(5.0);
@@ -227,6 +239,7 @@ void drawScene(void)
 
     // Fixed camera.
     gluLookAt(0.0, 290.0, 0.0, 0.0, 50.0, 30.0, 1.0, 0.0, 0.0);
+
     // Draw spacecraft.
     glColor3f(1.0, 1.0, 1.0);
 	glPushMatrix();
@@ -234,9 +247,6 @@ void drawScene(void)
 	glRotatef(angle, 0.0, 1.0, 0.0);
 	glCallList(spacecraft);
 	glPopMatrix();
-
-	glDisable(GL_LIGHTING);
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPos0);
     // Draw solar systems
     drawingSystem();
 	// End plane viewport.
